@@ -1,0 +1,248 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Replacement Simulation</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box; /* Important for width */
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        #output {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Page Replacement Simulation</h1>
+
+        <label for="referenceString">Reference String (comma-separated):</label>
+        <input type="text" id="referenceString" placeholder="e.g., 7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1">
+
+        <label for="frameCount">Number of Frames:</label>
+        <input type="number" id="frameCount" value="3">
+
+        <button onclick="runSimulation()">Run Simulation</button>
+
+        <div id="output">
+            <h2>Results</h2>
+            <p id="resultsText"></p>
+            <table id="resultsTable"></table>
+        </div>
+    </div>
+
+    <script>
+        function runSimulation() {
+            const referenceString = document.getElementById("referenceString").value.split(",").map(Number);
+            const frameCount = parseInt(document.getElementById("frameCount").value);
+
+            if (isNaN(frameCount) || frameCount <= 0) {
+                alert("Please enter a valid number of frames (greater than 0).");
+                return;
+            }
+
+            if (referenceString.some(isNaN)) {
+                alert("Please enter a valid comma-separated reference string with only numbers.");
+                return;
+            }
+
+            const fifoResults = simulateFIFO(referenceString, frameCount);
+            const lruResults = simulateLRU(referenceString, frameCount);
+            const optimalResults = simulateOptimal(referenceString, frameCount);
+
+            displayResults("FIFO", referenceString, frameCount, fifoResults);
+            displayResults("LRU", referenceString, frameCount, lruResults);
+            displayResults("Optimal", referenceString, frameCount, optimalResults);
+
+        }
+
+        function simulateFIFO(referenceString, frameCount) {
+            let frames = [];
+            let pageFaults = 0;
+            let frameStates = [];  // Array to store the frame states for each step
+
+            for (const page of referenceString) {
+                if (!frames.includes(page)) {
+                    pageFaults++;
+                    if (frames.length < frameCount) {
+                        frames.push(page);
+                    } else {
+                        frames.shift(); // Remove the oldest page (FIFO)
+                        frames.push(page);
+                    }
+                }
+                 frameStates.push([...frames]); // Store the current frame state. Use spread syntax for a copy.
+            }
+
+            return { pageFaults: pageFaults, frameStates: frameStates };
+        }
+
+
+        function simulateLRU(referenceString, frameCount) {
+            let frames = [];
+            let pageFaults = 0;
+            let frameStates = [];
+
+            for (const page of referenceString) {
+                if (!frames.includes(page)) {
+                    pageFaults++;
+                    if (frames.length < frameCount) {
+                        frames.push(page);
+                    } else {
+                        frames.shift(); // Remove the least recently used page
+                        frames.push(page); // Add the new page
+                    }
+                } else {
+                    // If the page is already in a frame, move it to the end of the frame array (most recently used)
+                    frames.splice(frames.indexOf(page), 1);
+                    frames.push(page);
+                }
+                  frameStates.push([...frames]);
+            }
+
+            return { pageFaults: pageFaults, frameStates: frameStates };
+        }
+
+
+
+        function simulateOptimal(referenceString, frameCount) {
+            let frames = [];
+            let pageFaults = 0;
+            let frameStates = [];
+
+            for (let i = 0; i < referenceString.length; i++) {
+                const page = referenceString[i];
+
+                if (!frames.includes(page)) {
+                    pageFaults++;
+
+                    if (frames.length < frameCount) {
+                        frames.push(page);
+                    } else {
+                        // Find the page to replace (the one that will not be used for the longest time)
+                        let farthest = -1;
+                        let replaceIndex = -1;
+
+                        for (let j = 0; j < frames.length; j++) {
+                            const framePage = frames[j];
+                            let found = false;
+                            for (let k = i + 1; k < referenceString.length; k++) {
+                                if (referenceString[k] === framePage) {
+                                    found = true;
+                                    if (k > farthest) {
+                                        farthest = k;
+                                        replaceIndex = j;
+                                    }
+                                    break;
+                                }
+                            }
+
+                            // If the page is not used in the future, replace it immediately
+                            if (!found) {
+                                replaceIndex = j;
+                                break;
+                            }
+                        }
+
+                        frames[replaceIndex] = page;
+                    }
+                }
+               frameStates.push([...frames]);
+            }
+
+            return { pageFaults: pageFaults, frameStates: frameStates };
+        }
+
+
+
+        function displayResults(algorithm, referenceString, frameCount, results) {
+            const outputDiv = document.getElementById("output");
+            const table = document.createElement("table");
+            table.innerHTML = `<tr><th>Reference</th><th>${algorithm} Frames</th><th>Page Fault</th></tr>`; //header
+
+            const frameStates = results.frameStates; // Get the frame states
+
+            for (let i = 0; i < referenceString.length; i++) {
+                const row = table.insertRow();
+                const refCell = row.insertCell();
+                const frameCell = row.insertCell();
+                const faultCell = row.insertCell();
+
+                refCell.textContent = referenceString[i];
+                frameCell.textContent = frameStates[i].join(", ");  //Display frames
+
+                // Determine if there was a page fault at this step. Check if the current page is in the previous state
+                let pageFault = true;
+                if (i > 0) {
+                    if(frameStates[i-1].includes(referenceString[i])) {
+                         pageFault = false;
+                    }
+                }
+                faultCell.textContent = pageFault ? "Yes" : "No";
+            }
+
+            const summaryP = document.createElement("p");
+            summaryP.textContent = `${algorithm}: Number of Frames = ${frameCount}, Page Faults = ${results.pageFaults}`;
+
+            outputDiv.appendChild(summaryP);
+            outputDiv.appendChild(table);
+
+        }
+
+
+    </script>
+</body>
+</html>

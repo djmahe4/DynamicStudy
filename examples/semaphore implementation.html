@@ -1,0 +1,175 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Semaphore Simulation</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .process-container {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+      width: 300px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .resource-container {
+      border: 1px solid #aaa;
+      padding: 10px;
+      margin: 10px;
+      width: 300px;
+      text-align: center;
+    }
+
+    #semaphore-value {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin: 5px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #3e8e41;
+    }
+
+    #process-status {
+        margin-top: 10px;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Semaphore Simulation</h1>
+
+  <div class="resource-container">
+    <h2>Critical Section</h2>
+    <div id="semaphore-value">Semaphore Value: <span id="semaphore-display">1</span></div>
+    <p id="critical-section-info">Current Status: Available</p>
+  </div>
+
+  <div class="process-container">
+    <h2>Process A</h2>
+    <button id="process-a-request">Request Resource</button>
+    <button id="process-a-release" disabled>Release Resource</button>
+    <p id="process-a-status">Idle</p>
+  </div>
+
+  <div class="process-container">
+    <h2>Process B</h2>
+    <button id="process-b-request">Request Resource</button>
+    <button id="process-b-release" disabled>Release Resource</button>
+    <p id="process-b-status">Idle</p>
+  </div>
+
+
+  <script>
+    let semaphoreValue = 1;
+    let processAHasResource = false;
+    let processBHasResource = false;
+
+    const semaphoreDisplay = document.getElementById('semaphore-display');
+    const criticalSectionInfo = document.getElementById('critical-section-info');
+    const processARequestButton = document.getElementById('process-a-request');
+    const processAReleaseButton = document.getElementById('process-a-release');
+    const processAStatus = document.getElementById('process-a-status');
+    const processBRequestButton = document.getElementById('process-b-request');
+    const processBReleaseButton = document.getElementById('process-b-release');
+    const processBStatus = document.getElementById('process-b-status');
+
+    function updateDisplay() {
+      semaphoreDisplay.textContent = semaphoreValue;
+
+      if (semaphoreValue <= 0) {
+        criticalSectionInfo.textContent = "Current Status: In Use";
+      } else {
+        criticalSectionInfo.textContent = "Current Status: Available";
+      }
+    }
+
+    function requestResource(process, processStatus, requestButton, releaseButton) {
+      if (semaphoreValue > 0) {
+        semaphoreValue--;
+        updateDisplay();
+
+        processStatus.textContent = "Status: Using Resource";
+        requestButton.disabled = true;
+        releaseButton.disabled = false;
+
+        if (process === 'A') {
+          processAHasResource = true;
+        } else {
+          processBHasResource = true;
+        }
+
+      } else {
+        processStatus.textContent = "Status: Waiting for Resource";
+      }
+    }
+
+    function releaseResource(process, processStatus, requestButton, releaseButton) {
+        semaphoreValue++;
+        updateDisplay();
+
+        processStatus.textContent = "Status: Idle";
+        requestButton.disabled = false;
+        releaseButton.disabled = true;
+
+        if (process === 'A') {
+          processAHasResource = false;
+        } else {
+          processBHasResource = false;
+        }
+
+
+        // Check if anyone is waiting and can be given the resource
+        if (process === 'A' && semaphoreValue > 0 && processBStatus.textContent.includes("Waiting")) {
+           requestResource('B', processBStatus, processBRequestButton, processBReleaseButton);
+        } else if (process === 'B' && semaphoreValue > 0 && processAStatus.textContent.includes("Waiting")) {
+            requestResource('A', processAStatus, processARequestButton, processAReleaseButton);
+        }
+
+    }
+
+    processARequestButton.addEventListener('click', () => {
+      requestResource('A', processAStatus, processARequestButton, processAReleaseButton);
+    });
+
+    processAReleaseButton.addEventListener('click', () => {
+      releaseResource('A', processAStatus, processARequestButton, processAReleaseButton);
+    });
+
+    processBRequestButton.addEventListener('click', () => {
+      requestResource('B', processBStatus, processBRequestButton, processBReleaseButton);
+    });
+
+    processBReleaseButton.addEventListener('click', () => {
+      releaseResource('B', processBStatus, processBRequestButton, processBReleaseButton);
+    });
+
+
+    // Initial display update
+    updateDisplay();
+  </script>
+
+</body>
+</html>
