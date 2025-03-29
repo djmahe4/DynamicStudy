@@ -14,7 +14,7 @@
 ## **🚀 Quick Start**  
 
 ### **0. Prerequisites**
-***‼ Requires an API KEY created from https://ai.google.dev***
+***‼ Requires an API KEY created from https://aistudio.google.com***
 
 ### **1. Running the Streamlit Web App (Recommended)**  
 The Streamlit implementation allows live preview and easy HTML download.  
@@ -68,7 +68,7 @@ DynamicStudy/
 ├── gemini.py         # Local script for HTML generation  
 ├── .env              # Stores Gemini API key  
 ├── README.md         # This guide  
-├── uptil.py          # Codes to assist app.py 
+├── uptil.py          # Code to assist app.py 
 └── examples/         # Sample generated HTML files  
 ```
 
