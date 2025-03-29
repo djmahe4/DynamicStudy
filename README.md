@@ -52,6 +52,12 @@ If you prefer running the script directly without Streamlit:
 
 ---
 
+### **3. Cloud Deployment**
+The code is deployed in streamlit. 
+So anyone can access it through the [link](https://dynamicstudy.streamlit.app/)
+
+---
+
 ## **📂 File Structure**  
 ```
 DynamicStudy/  
@@ -59,6 +65,7 @@ DynamicStudy/
 ├── gemini.py         # Local script for HTML generation  
 ├── .env              # Stores Gemini API key  
 ├── README.md         # This guide  
+├── uptil.py          # Codes to assist app.py 
 └── examples/         # Sample generated HTML files  
 ```
 
@@ -86,7 +93,7 @@ MIT License – Free for personal and educational use.
 
 ### **🔗 Get Started Now!**  
 👉 **Run locally:** `python gemini.py`  
-👉 **Web version:** `streamlit run app.py`  
+👉 **Web version:** `streamlit run app.py` OR **https://dynamicstudy.streamlit.app/**  
 
 Happy Learning! 🎓🚀  
 
