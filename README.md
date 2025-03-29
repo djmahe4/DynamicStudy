@@ -13,7 +13,7 @@
 
 ## **🚀 Quick Start**  
 
-### **Prerequisites**
+### **0. Prerequisites**
 ***‼ Requires an API KEY created from https://ai.google.dev***
 
 ### **1. Running the Streamlit Web App (Recommended)**  
