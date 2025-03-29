@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booth's Multiplication Algorithm Simulator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"] {
+            width: 150px;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3e8e41;
+        }
+
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            white-space: pre-wrap; /* Preserves formatting in the output */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Booth's Multiplication Algorithm Simulator</h1>
+
+        <label for="multiplier">Multiplier:</label>
+        <input type="number" id="multiplier" placeholder="Enter multiplier (e.g., 5)">
+
+        <label for="multiplicand">Multiplicand:</label>
+        <input type="number" id="multiplicand" placeholder="Enter multiplicand (e.g., 3)">
+
+        <button onclick="calculateBooth()">Calculate</button>
+
+        <h2>Steps:</h2>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function calculateBooth() {
+            const multiplier = parseInt(document.getElementById("multiplier").value);
+            const multiplicand = parseInt(document.getElementById("multiplicand").value);
+
+            if (isNaN(multiplier) || isNaN(multiplicand)) {
+                alert("Please enter valid numbers for both multiplier and multiplicand.");
+                return;
+            }
+
+            let resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "";  // Clear previous results
+
+            // Convert to binary (handle negative numbers)
+            const multiplierBinary = toBinary(multiplier);
+            const multiplicandBinary = toBinary(multiplicand);
+            const numBits = Math.max(multiplierBinary.length, multiplicandBinary.length);
+
+            // Pad binary strings to the same length
+            const paddedMultiplierBinary = multiplierBinary.padStart(numBits, multiplier < 0 ? '1' : '0');
+            const paddedMultiplicandBinary = multiplicandBinary.padStart(numBits, multiplicand < 0 ? '1' : '0');
+
+            // Initialize registers
+            let A = "0".repeat(numBits);
+            let Q = paddedMultiplierBinary;
+            let Q_1 = '0'; // Q-1
+            let M = paddedMultiplicandBinary;  // Multiplicand
+            let M_neg = toBinary(-multiplicand).padStart(numBits, multiplicand < 0 ? '1' : '0'); // -Multiplicand (2's complement)
+
+            resultDiv.innerHTML += `<b>Initial Values:</b><br>`;
+            resultDiv.innerHTML += `A: ${A}<br>`;
+            resultDiv.innerHTML += `Q (Multiplier): ${Q}<br>`;
+            resultDiv.innerHTML += `Q-1: ${Q_1}<br>`;
+            resultDiv.innerHTML += `M (Multiplicand): ${M}<br>`;
+            resultDiv.innerHTML += `M_neg (-Multiplicand): ${M_neg}<br><br>`;
+
+            // Booth's Algorithm Loop
+            for (let i = 0; i < numBits; i++) {
+                resultDiv.innerHTML += `<b>Iteration ${i + 1}:</b><br>`;
+
+                if (Q[Q.length - 1] === '0' && Q_1 === '1') {
+                    resultDiv.innerHTML += `Q[0] is 0 and Q-1 is 1: A = A + M_neg <br>`;
+                    A = binaryAddition(A, M_neg);
+                } else if (Q[Q.length - 1] === '1' && Q_1 === '0') {
+                    resultDiv.innerHTML += `Q[0] is 1 and Q-1 is 0: A = A + M <br>`;
+                    A = binaryAddition(A, M);
+                } else {
+                    resultDiv.innerHTML += `Q[0] and Q-1 are the same: No addition needed <br>`;
+                }
+
+                resultDiv.innerHTML += `A after addition: ${A}<br>`;
+
+                // Arithmetic Right Shift (ASR)
+                [A, Q, Q_1] = arithmeticRightShift(A, Q, Q_1);
+
+                resultDiv.innerHTML += `After ASR: A = ${A}, Q = ${Q}, Q-1 = ${Q_1}<br><br>`;
+            }
+
+
+            // Combine A and Q for the result
+            let finalResultBinary = A + Q;
+
+
+            // Convert binary result to decimal (handling sign)
+            const finalResultDecimal = binaryToDecimal(finalResultBinary);
+
+            resultDiv.innerHTML += `<b>Final Result (Binary):</b> ${finalResultBinary}<br>`;
+            resultDiv.innerHTML += `<b>Final Result (Decimal):</b> ${finalResultDecimal}<br>`;
+
+
+            // Helper Functions
+            function toBinary(decimal) {
+                if (decimal === 0) return "0";
+
+                let binary = "";
+                let isNegative = decimal < 0;
+                let num = Math.abs(decimal);
+
+                while (num > 0) {
+                    binary = (num % 2) + binary;
+                    num = Math.floor(num / 2);
+                }
+
+               if (isNegative) {
+                  //2's complement representation for negative numbers.
+                  binary = twosComplement(binary);
+               }
+
+                return binary;
+            }
+
+
+            function twosComplement(binary) {
+              let invertedString = "";
+              for (let bit of binary) {
+                invertedString += (bit === '0' ? '1' : '0');
+              }
+
+              // Add 1 to the inverted string
+              let carry = 1;
+              let result = "";
+              for (let i = invertedString.length - 1; i >= 0; i--) {
+                let bit = parseInt(invertedString[i]);
+                let sum = bit + carry;
+
+                result = (sum % 2) + result;
+                carry = Math.floor(sum / 2);
+              }
+
+              if (carry === 1) {
+                result = "1" + result;
+              }
+
+              return result;
+            }
+
+
+            function binaryAddition(bin1, bin2) {
+                let carry = 0;
+                let result = "";
+                let i = bin1.length - 1;
+                let j = bin2.length - 1;
+
+                while (i >= 0 || j >= 0 || carry) {
+                    const digit1 = i >= 0 ? parseInt(bin1[i]) : 0;
+                    const digit2 = j >= 0 ? parseInt(bin2[j]) : 0;
+
+                    const sum = digit1 + digit2 + carry;
+                    result = (sum % 2) + result;
+                    carry = Math.floor(sum / 2);
+
+                    i--;
+                    j--;
+                }
+
+                return result;
+            }
+
+            function arithmeticRightShift(A, Q, Q_1) {
+                const signBit = A[0];
+                Q_1 = Q[Q.length - 1];
+                Q = signBit + Q.slice(0, Q.length - 1);
+                A = signBit + A.slice(0, A.length - 1);
+                return [A, Q, Q_1];
+            }
+
+            function binaryToDecimal(binary) {
+              let decimal = 0;
+              let sign = 1;
+              let numBits = binary.length;
+
+              // Check for negative number (2's complement)
+              if (binary[0] === '1') {
+                  sign = -1;
+                  // Convert back to positive by taking 2's complement
+                  binary = twosComplement(binary);
+              }
+
+
+              for (let i = 0; i < binary.length; i++) {
+                  if (binary[binary.length - 1 - i] === '1') {
+                      decimal += Math.pow(2, i);
+                  }
+              }
+
+              return sign * decimal;
+            }
+        }
+    </script>
+</body>
+</html>
