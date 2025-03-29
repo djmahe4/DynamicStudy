@@ -12,10 +12,11 @@ def show_html_page(html_file):
     st.components.v1.html(html_content,height=600,width=800,scrolling=True)
 
 def api_key_manager():
+    st.sidebar.title("DynamicStudy")
     st.title("🔑 API Key Manager")
 
     with st.form("api_key_form"):
-        api_key = st.text_input("Enter your API key:", type="password", value="")
+        api_key = st.text_input("Enter your API key from aistudio.google.com:", type="password", value="")
         submitted = st.form_submit_button("Save API Key")
 
         if submitted:
@@ -43,23 +44,28 @@ def api_key_manager():
         return base64.b64decode(os.environ["MY_API_KEY"]).decode()
     return None
 def sub():
+    st.sidebar.title("DynamicStudy")
     if st.session_state.client==None:
         st.error("Set api key first!")
         st.page_link(st.Page(api_key_manager, title="Set API"))
     else:
-        st.info("Enter Prompt to continue..")
+        st.info("Enter Prompt in the sidebar..")
     prompt = st.sidebar.text_input("Enter topic:")
     if prompt:
-        p = generate(st.session_state.client, prompt)
+        try:
+            p = generate(st.session_state.client, prompt)
+        except AttributeError:
+            st.error("Go to Api Manager and set API key First!")
+            return
         if p:
-            st.session_state.pages['Study pages'].append(st.Page(lambda: show_html_page(p),title=p.title()[:-5]))
+            #st.session_state.pages['Study pages'].append(st.Page(lambda: show_html_page(p),title=p.title()[:-5]))
             with open(p,'r',encoding='utf-8') as c:
+                st.code(c.read(), language='html')
                 st.download_button(label="Download HTML",data=c, file_name=p)
-                st.code(c.read(),language='html')
 
 if __name__=="__main__":
     if "pages" not in st.session_state:
-        st.session_state.pages = {"Main page": [st.Page(api_key_manager,title='Api Manager'),
+        st.session_state.pages = {"Main pages": [st.Page(api_key_manager,title='Api Manager'),
                                                 st.Page(sub, title="Prompt Page"),
                                                 #st.Page(init2, title='Api Setter'),
                                                 st.Page(display_and_download_html_files,title="Download Page")],
@@ -68,8 +74,10 @@ if __name__=="__main__":
         st.session_state.client=None
     if "api_key" not in st.session_state:
         st.session_state.api_key=None
+    if "htmls" not in st.session_state:
+        st.session_state.htmls=[]
     if "preview" not in st.session_state:
-        st.session_state.preview=True
+        st.session_state.preview=None
 
     pg=st.navigation(st.session_state.pages)
     pg.run()

@@ -74,13 +74,13 @@ def generate(client,prompt="page replacement techniques"):
     html_list=extract_html_from_code_block(a)
     # Extract the first element (HTML content)
     html_content = html_list[0]
-
+    fname=prompt if len(prompt.split())<=6 else " ".join(prompt.split()[:5])
     # Write to an HTML file
-    with open(f'{prompt}.html', 'w') as file:
+    with open(f'{fname}.html', 'w') as file:
         file.write(html_content)
 
-    print(f"HTML file created successfully: '{prompt}.html'")
-    return f"{prompt}.html"
+    print(f"HTML file created successfully: '{fname}.html'")
+    return f"{fname}.html"
 
 if __name__ == "__main__":
     generate(init())
