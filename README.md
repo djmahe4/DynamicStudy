@@ -13,6 +13,9 @@
 
 ## **🚀 Quick Start**  
 
+### **Prerequisites**
+***‼ Requires an API KEY created from https://ai.google.dev***
+
 ### **1. Running the Streamlit Web App (Recommended)**  
 The Streamlit implementation allows live preview and easy HTML download.  
 
