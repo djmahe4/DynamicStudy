@@ -57,7 +57,7 @@ def generate(client,prompt="page replacement techniques"):
         types.Content(
             role="user",
             parts=[
-                types.Part.from_text(text=f"""Create a html site to simulate {prompt}"""),
+                types.Part.from_text(text=f"""Create a html site to simulate/visualize '{prompt}'"""),
             ],
         ),
     ]

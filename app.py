@@ -53,7 +53,8 @@ def sub():
     prompt = st.sidebar.text_input("Enter topic:")
     if prompt:
         try:
-            p = generate(st.session_state.client, prompt)
+            with st.spinner("Generating..."):
+                p = generate(st.session_state.client, prompt)
         except AttributeError:
             st.error("Go to Api Manager and set API key First!")
             return
