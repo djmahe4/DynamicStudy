@@ -118,6 +118,6 @@ def Quiz():
 
 if __name__ == '__main__':
     api_key = os.environ.get('GENERATIVE_AI_KEY')
-    client = genai.Client(api_key="AIzaSyAjp6o1TAgjvFBa9H8URZ31Xd5odSkmiVk")
+    client = genai.Client(api_key="YOUR-API-KEY")
     MODEL_ID = "gemini-2.0-flash-001"
     Quiz()
